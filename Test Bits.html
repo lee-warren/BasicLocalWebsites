@@ -1,0 +1,76 @@
+
+<html>
+<head>
+<title>Study/Get some work done</title>
+<link rel="stylesheet" href="ShittyIdeaPickerStyle.css">
+
+<script language=JavaScript>
+function mpmod(base, exponent, modulus) {
+	if ((base < 1) || (exponent < 0) || (modulus < 1)) {
+		return("invalid");
+	}
+	result = 1;
+	while (exponent > 0) {
+		if ((exponent % 2) == 1) {
+			result = (result * base) % modulus;
+		}
+		base = (base * base) % modulus;
+		exponent = Math.floor(exponent / 2);
+		}
+	return (result);
+}
+
+function eulerphi(x) {
+	result = 0;
+	for (i = 1; i < x; i++) {
+		if (isunit(i,x)) {
+			result++;
+		}
+	}
+	return (result);
+}
+
+var doccolor="ff80ff";
+
+function shadetd(alignment) {
+	document.write("<td bgcolor="+doccolor+" align="+alignment+">");
+}
+
+function startVideo() {
+	textBox.value = 'Hello World!';
+}
+function showTime() {
+	//var today = new Date();
+	//var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+	var time = "Test";
+	return time;
+}
+
+</script>
+
+</head>
+
+<body bgcolor=dddddd onLoad="startVideo();">
+<center>
+<h1>You've got this!</h1>
+<h2>Go get started...</h2>
+</br>
+
+<td bgcolor=bbbbbb>
+<input type=text value="" name=textBox>
+</td>
+
+</br></br>
+
+<td>
+<input type=button value="Date and time?"
+onClick="textBox.value = showTime();">
+</td>
+
+</br></br>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/5qap5aO4i9A" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  
+</center>
+</body>
+</html>

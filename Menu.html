@@ -1,0 +1,96 @@
+<html>
+<head>
+
+<style>
+	:root {
+		--mainColor: black;
+		--mainColorLight: white;
+		
+		--pieceWidth:60px;
+	}
+	
+	body {
+		*background-color:var(--mainColorLight);*
+		background-color:white; 
+		font-family:'Helvetica';
+	}
+	
+	h1 {
+		color: var(--mainColor); 
+		font-weight: 900;
+		font-size: 50;
+	}
+	
+	h2 {
+		color: var(--mainColor); 
+		font-weight: 700;
+		font-size: 25;
+	}
+	
+	p {
+		color: var(--mainColor);
+	}
+	
+	table {
+		border: none;
+
+	}
+	th, td {
+		border: none;
+		
+	}
+	
+	.flex-container {
+	  display: flex;
+	  flex-wrap: wrap;
+	  justify-content: center;
+	  *background-color: DodgerBlue;*
+	}
+
+	.flex-container > div {
+	  *background-color: #f1f1f1;*
+	  width: 100px;
+	  margin: 10px;
+	  text-align: center;
+	  line-height: 75px;
+	}
+	
+</style>
+
+<!-- this make it look more normal on a phone -->
+<meta name="viewport" content="width=device-width,
+                           maximum-scale=1.0" />
+</head>
+
+<body onload="loadGameList();">
+
+<center>
+<h1>Lee's Web Games and More</h1>
+
+</br>
+</br>
+
+<div class="flex-container" id=gameListDiv>
+</div> 
+
+<script>
+
+function loadGameList() {
+	
+	var gameList = ["LeesMemoryMatch","LeesMinesweeper","Lees4InARow","LeesToDoList"];
+	var gameListTitle = ["Lee's Memory Match","Lee's Minesweeper","Lee's 4-In-A-Row","Lee's To Do List"];
+
+	//fill gameBoard
+	gameListDiv = document.getElementById("gameListDiv");
+	//fill the game List Flex Container	
+	for(var j = 0; j < gameList.length; j++) {
+	   // create a div inside the GameList
+	   gameListDiv.innerHTML += "<div><a href='" + gameList[j] + ".html'><h2>"+ gameListTitle[j] +"</h2><img src='MenuImages/" + gameList[j] + "Image.png' style='width:400px;'></br></a></div>" ;
+	}
+	
+}
+</script>
+</body>
+</html>
+
+

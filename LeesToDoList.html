@@ -1,0 +1,552 @@
+<html>
+<head>
+
+<style>
+	:root {
+		//OLD:
+		--mainColor: #330066;
+		--mainColorLight: #f2e6ff;
+		//
+		
+		--lightest: #EDF5E1;
+		--light: #8EE4AF;
+		--medium: #5CDB95;
+		--dark: #379683;
+		--darkest: #05386B;
+		
+		--linearGradientBackground: linear-gradient(to bottom right, #8EE4AF, 70%, #5CDB95);
+		
+		--pieceWidth:60px;
+	}
+	
+	body {
+		background-image: var(--linearGradientBackground);
+		font-family:'Helvetica';
+	}
+	
+	h1 {
+		color: var(--darkest); 
+		font-weight: 900;
+		font-size: 50;
+	}
+	
+	h2 {
+		color: var(--darkest); 
+		font-weight: 700;
+		font-size: 25;
+		text-align: left;
+		line-height: 0.1;
+
+	}
+	
+	p {
+		color: var(--darkest);
+
+	}
+	
+	table {
+		border: none;
+		width: 100%;
+		
+	}
+	th, td {
+		border: none;
+		font-size: 20;
+
+	}
+	
+	td:first-child {  
+		border: 1px solid var(--darkest);
+		width: 80%;
+		background-color: white; 
+		
+	}
+	
+	label {
+		font-size: 20;
+	}
+	
+	button {
+		background-color: var(--darkest);
+		color: white;
+		padding: 10px 20px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 20;
+		border-radius: 15px;
+		margin-left: 10px;
+		
+	}
+	
+	input {
+		font-size:20;
+		background-color: var(--lightest);
+	}
+	
+	select {
+		font-size:20;
+		background-color: var(--lightest);
+	}
+	
+	.tableInput {
+		height:100%;
+		width:100%;
+		border-width:0px;
+		border:none;
+	}
+	
+	.enterItemWindow, .completedItemWindow, .toDoItemWindow, .categoriesWindow, .musicWindow{
+		background-color: rgba(255, 255, 255, .15);  
+		backdrop-filter: blur(5px);
+		box-shadow: 1px 5px 4px var(--darkest);
+		
+		padding: 15px 30px 15px 30px;
+		margin-bottom: 15px;
+		border-radius: 30px;
+
+	}
+	
+	
+	.flex-container {
+	  display: flex;
+	  flex-wrap: wrap;
+	  justify-content: center;
+	  *background-color: DodgerBlue;*
+	}
+
+	.flex-container > div {
+	  *background-color: #f1f1f1;*
+	  width: 100px;
+	  margin: 10px;
+	  text-align: center;
+	  line-height: 75px;
+	}
+	
+</style>
+
+<!-- this make it look more normal on a phone -->
+<meta name="viewport" content="width=device-width,
+                           maximum-scale=1.0" />
+</head>
+
+<body onload="loadList()">
+
+<center>
+<h1>Lee's To-Do List</h1>
+
+</br>
+
+<div id = "enterItemWindow" class = "enterItemWindow">
+	<label>Enter: </label>
+	<input type="text" id= "newItem" size="60" value="" onkeyup="keyUpOnNewItem(event)">
+	<select name="newItemCategory" id="newItemCategory"></select>
+	<button class = "button" type="button" id = "addButton" onclick = "addItem()">Add</button>
+</div>
+<div id = "enterItemWindow" class = "enterItemWindow">
+	<button class = "button" type = "button" id = "showHideMusicButton" onclick = "showHideMusic()">Show Music</button>
+	<button class = "button" type = "button" id = "showHideCompletedButton" onclick = "showHideCompleted()">Hide Completed Items</button>
+	<button class = "button" type = "button" id = "showHideCategoriesButton" onclick = "showHideCategories()">Show Categories</button>
+	<select name="filterCategory" id="filterCategory" onchange="filterToDo()"></select>
+</div>
+		
+<div class="flex-container">
+	<div style="flex-grow: 4">
+		<div id="categoriesWindow" class="categoriesWindow">
+			<h2>Categories:</h2>
+			<label>New Category: </label>
+			<input type="text" id= "newCategoryItem" size="60" value="" onkeyup="keyUpOnNewCategory(event)">
+			<button class = "button" type="button" id = "addButton" onclick = "addItemCategory()">Add</button>
+			<table id="categoriesTable"> </table>
+		</div>
+		<div id="toDoItemWindow" class="toDoItemWindow">
+			<h2>Things to do:</h2> 
+			<table id="toDoListTable"> </table>
+		</div>
+		<div id="completedItemWindow" class="completedItemWindow">
+			<h2>Completed items:</h2>
+			<table id="completedListTable"> </table>
+		</div>
+	</div>
+	<div style="flex-grow: 1" id="musicWindow" class="musicWindow">
+	</div>
+	 
+</div> 
+
+<script>
+
+/*
+toDoItem {
+	constructor(item, importance) {
+		this.item = item;
+		//this.dueDate = 1;
+		this.importance = importance; 
+	}
+	
+}
+*/
+
+var toDoArray;
+var completedArray;
+
+var toDoItemObjects;
+var completedItemObjects;
+var categories;
+
+//https://www.kirupa.com/html5/storing_and_retrieving_an_array_from_local_storage.htm
+
+function loadList() {
+
+	musicWindow.style.display = "none";
+	categoriesWindow.style.display = "none";
+	musicWindow.innerHTML = '</br></br><iframe align="center" src="https://www.youtube.com/embed/5qap5aO4i9A" frameborder="20" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></br><iframe align="center" src="https://www.youtube.com/embed/DWcJFNfaw9c" frameborder="20" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></br><iframe align="center" src="https://www.youtube.com/embed/7NOSDKb0HlU" frameborder="20" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+ 
+	//check if local data already exists, if not - create it
+	if ("toDoItemsWithCategory" in localStorage) {
+		//toDoItemsWithCategory exists
+	} else {
+		localStorage.setItem("toDoItemsWithCategory", JSON.stringify([]));
+	}
+	if ("completedItemsWithCategory" in localStorage) {
+		//completedItemsWithCategory exists
+	} else {
+		localStorage.setItem("completedItemsWithCategory", JSON.stringify([]));
+	}
+	if ("categories" in localStorage) {
+		//categories exists
+	} else {
+		localStorage.setItem("categories", JSON.stringify([]));
+	}
+	
+	var retrievedData = localStorage.getItem("toDoItemsWithCategory");
+	toDoItemObjects = JSON.parse(retrievedData);
+	
+	var retrievedData2 = localStorage.getItem("completedItemsWithCategory");
+	completedItemObjects = JSON.parse(retrievedData2);
+	
+	var retrievedData3 = localStorage.getItem("categories");
+	categories = JSON.parse(retrievedData3);
+
+	makeToDoListTable();
+	makeCompletedListTable();
+	makeCategoriesTable();
+	makeCategoriesDropdown();
+	
+}
+
+function makeToDoListTable() {
+	toDoListTable.innerHTML = "";
+
+	//fill gameBoard
+	toDoListTable = document.getElementById("toDoListTable");
+	
+	//fill the toDoItemObjects table	
+	for(var i = 0; i < toDoItemObjects.length; i++) {
+	   if (filterCategory.value == 0 || filterCategory.value == toDoItemObjects[i].category) {
+
+		   // create a new row
+		   var newRow = toDoListTable.insertRow(toDoListTable.length);
+		   var cell = newRow.insertCell(0);
+		   
+		   // add value to the cell
+		   cell.innerHTML = '<input class= "tableInput" id="listItemInTable' + i +'" onkeyup="saveChanges('+i+')" value="' + toDoItemObjects[i].item + '"></input>';
+				   
+		   var cell2 = newRow.insertCell();
+		   
+		   // add value to the cell
+		   cell2.innerHTML = '<button class = "button" type = "button" id = "completeItem" onclick = "completeItem('+i+')">Completed</button>';
+
+		   cell2.innerHTML += '<button class = "button" type = "button" id = "deleteItem" onclick = "deleteItem('+i+')">Delete</button>';
+		}
+	}
+	
+	//update the localStorage
+	localStorage.setItem("toDoItemsWithCategory", JSON.stringify(toDoItemObjects));
+		
+}
+
+function makeCompletedListTable() {
+	
+	completedListTable.innerHTML = "";
+
+	//fill gameBoard
+	completedListTable = document.getElementById("completedListTable");
+	
+	//fill the completedListTable	
+	for(var i = 0; i < completedItemObjects.length; i++) {
+		if (filterCategory.value == 0 || filterCategory.value == completedItemObjects[i].category) {
+
+			// create a new row
+			var newRow = completedListTable.insertRow(completedListTable.length);
+			var cell = newRow.insertCell(0);
+
+			// add value to the cell
+			cell.innerHTML = '<input class= "tableInput" id="completedListItemInTable' + i +'" onkeyup="saveChangesCompleted('+i+')" value="' + completedItemObjects[i].item + '"></input>';
+
+			var cell2 = newRow.insertCell();
+
+			// add value to the cell
+			cell2.innerHTML = '<button class = "button" type = "button" id = "deleteItemCompleted" onclick = "deleteItemCompleted('+i+')">Delete</button>' ;
+		}
+	}
+	
+	//update the localStorage
+	localStorage.setItem("completedItemsWithCategory", JSON.stringify(completedItemObjects));
+}
+
+function makeCategoriesTable() {
+
+	categoriesTable.innerHTML = "";
+
+
+	//fill gameBoard
+	categoriesTable = document.getElementById("categoriesTable");
+	
+	//fill the categoriesTable	
+	for(var i = 0; i < categories.length; i++) {
+		// create a new row
+		var newRow = categoriesTable.insertRow(categoriesTable.length);
+		var cell = newRow.insertCell(0);
+
+		// add value to the cell
+		cell.innerHTML = '<input class= "tableInput" id="categoryListItemInTable' + i +'" onkeyup="saveChangesCategories('+i+')" value="' + categories[i].name + '"></input>';
+
+		var cell2 = newRow.insertCell();
+
+		// add value to the cell
+		cell2.innerHTML = '<button class = "button" type = "button" id = "deleteCategory" onclick = "deleteCategoryItem('+i+')">Delete</button>' ;
+
+	}
+	
+	//update the localStorage
+	localStorage.setItem("categories", JSON.stringify(categories));
+}
+
+function makeCategoriesDropdown(){
+
+	var newItemCategory = document.getElementById("newItemCategory"); 
+
+	for(var i = newItemCategory.options.length - 1; i >= 0; i--) {
+		newItemCategory.remove(i);
+	}
+
+	var emptyElement = document.createElement("option");
+	emptyElement.textContent = "Please enter a category";
+	emptyElement.value = 0;
+	newItemCategory.appendChild(emptyElement);
+	
+	for(var i = 0; i< categories.length; i++){
+		var element = document.createElement("option");
+		element.textContent = categories[i].name;
+		element.value = categories[i].categoryIndex;
+		newItemCategory.appendChild(element);
+	}
+	
+	makeFilterCategoriesDropdown();
+}
+
+function makeFilterCategoriesDropdown() {
+	
+	var filterCategory = document.getElementById("filterCategory"); 
+
+	for(var i = filterCategory.options.length - 1; i >= 0; i--) {
+		filterCategory.remove(i);
+	}
+
+	var emptyElement = document.createElement("option");
+	emptyElement.textContent = "All Categories";
+	emptyElement.value = 0;
+	filterCategory.appendChild(emptyElement);
+	
+	for(var i = 0; i< categories.length; i++){
+		var element = document.createElement("option");
+		element.textContent = categories[i].name;
+		element.value = categories[i].categoryIndex;
+		filterCategory.appendChild(element);
+	}
+}
+
+function filterToDo() {
+	makeToDoListTable();
+	makeCompletedListTable();
+}
+
+function deleteItem(deleteRowNumber) {
+	
+	toDoItemObjects.splice(deleteRowNumber, 1);
+	
+	makeToDoListTable();
+}
+
+function deleteItemCompleted(deleteRowNumber) {
+	
+	completedItemObjects.splice(deleteRowNumber, 1);
+	
+	makeCompletedListTable();
+	
+}
+
+function deleteCategoryItem(deleteRowNumber) {
+	
+	//think about this one? What happens to existing items when a category is deleted? Do we have to update indexes?
+	/*
+	completedItemObjects.splice(deleteRowNumber, 1);
+	
+	completedListTable.innerHTML = "";
+	makeCompletedListTable();
+	*/
+	
+}
+
+function completeItem(completeRowNumber) {
+	dateNow = new Date();
+	
+	completedItemObjects[completedItemObjects.length] = {
+		item: toDoItemObjects[completeRowNumber].item,
+		createdDate: toDoItemObjects[completeRowNumber].createdDate,
+		category: toDoItemObjects[completeRowNumber].category,
+		completedDate: dateNow
+	};
+
+	makeCompletedListTable();	
+	deleteItem(completeRowNumber);
+}
+
+function addItem() {
+
+	if (document.getElementById("newItemCategory").value != document.getElementById("filterCategory").value && document.getElementById("filterCategory").value != 0) {
+		if (window.confirm("Filtered category doesn't match selected category. Is that okay?")) {
+			txt = "You pressed OK!";
+		} else {
+			return;
+		}
+	}
+	
+	dateNow = new Date();
+
+	toDoItemObjects[toDoItemObjects.length] = {
+		item: document.getElementById("newItem").value,
+		createdDate: dateNow,
+		category: document.getElementById("newItemCategory").value
+	};
+	
+	document.getElementById("newItem").value = "";
+	makeToDoListTable();
+}
+
+function addItemCategory() {
+	dateNow = new Date();
+
+	categories[categories.length] = {
+		name: document.getElementById("newCategoryItem").value,
+		categoryIndex: (categories.length==0) ?  1 : categories[categories.length -1].categoryIndex + 1,
+		createdDate: dateNow
+	};
+	
+	document.getElementById("newCategoryItem").value = "";
+
+	makeCategoriesTable();
+	makeCategoriesDropdown();
+}
+
+function saveChanges(i) {
+
+	toDoItemObjects[i] = {
+		item: document.getElementById("listItemInTable" + i).value,
+		createdDate: toDoItemObjects[i].createdDate,
+		category: toDoItemObjects[i].category
+	};
+	localStorage.setItem("toDoItemsWithCategory", JSON.stringify(toDoItemObjects));
+	//toDoListTable.innerHTML = "";
+	//makeToDoListTable();
+}
+
+function saveChangesCompleted(i) {
+
+	completedItemObjects[i] = {
+		item: document.getElementById("completedListItemInTable" + i).value,
+		createdDate: completedItemObjects[i].createdDate,
+		category: completedItemObjects[i].category,
+		completedDate: completedItemObjects[i].completedDate
+	};
+	localStorage.setItem("completedItemsWithCategory", JSON.stringify(completedItemObjects));
+	//toDoListTable.innerHTML = "";
+	//makeToDoListTable();
+
+}
+
+function saveChangesCategories(i) {
+
+	categories[i] = {
+		name: document.getElementById("categoryListItemInTable" + i).value,
+		categoryIndex: categories[i].categoryIndex,
+		createdDate: categories[i].createdDate,
+	};
+	localStorage.setItem("categories", JSON.stringify(categories));
+	//toDoListTable.innerHTML = "";
+	//makeToDoListTable();
+
+}
+
+function keyUpOnNewItem(e) {
+	if (e.code == "Enter") {
+		addItem();
+	}
+	
+	if (e.code == "ArrowDown") {
+		document.getElementById("newItemCategory").selectedIndex == newItemCategory.options.length-1 ? document.getElementById("newItemCategory").selectedIndex = 0 : document.getElementById("newItemCategory").selectedIndex++;
+	} else if (e.code == "ArrowUp") {
+		document.getElementById("newItemCategory").selectedIndex == 0 ? document.getElementById("newItemCategory").selectedIndex = newItemCategory.options.length-1 : document.getElementById("newItemCategory").selectedIndex--;
+	}
+}
+
+function keyUpOnNewCategory(e) {
+	if (e.code == "Enter") {
+		addItemCategory();
+	}
+}
+
+function showHideMusic() {
+	
+	if (showHideMusicButton.innerHTML == "Show Music") {
+		//show the game
+		musicWindow.style.display = "inline";
+		showHideMusicButton.innerHTML = "Hide Music";
+	} else {
+		//show the game
+		musicWindow.style.display = "none";
+		showHideMusicButton.innerHTML = "Show Music";
+	}
+}
+
+function showHideCategories() {
+	
+	if (showHideCategoriesButton.innerHTML == "Show Categories") {
+		//show the game
+		categoriesWindow.style.display = "block";
+		showHideCategoriesButton.innerHTML = "Hide Categories";
+	} else {
+		//show the game
+		categoriesWindow.style.display = "none";
+		showHideCategoriesButton.innerHTML = "Show Categories";
+	}
+}
+
+function showHideCompleted() {
+	
+	if (showHideCompletedButton.innerHTML == "Show Completed Items") {
+		//show the game
+		completedItemWindow.style.display = "inline";
+		showHideCompletedButton.innerHTML = "Hide Completed Items";
+	} else {
+		//show the game
+		completedItemWindow.style.display = "none";
+		showHideCompletedButton.innerHTML = "Show Completed Items";
+	}
+}
+
+</script>
+</body>
+</html>
+
+

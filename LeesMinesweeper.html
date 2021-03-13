@@ -1,0 +1,583 @@
+<html>
+<head>
+
+<style>
+	body {
+		background-color:darkgrey; 
+		font-family:'Helvetica';
+	}
+	
+	h1 {
+		color: black; 
+		font-weight: 900;
+		font-size: 50;
+	}
+	
+	h2 {
+		color: black; 
+		font-weight: 700;
+		font-size: 25;
+	}
+	
+	p {
+		color: red;
+	}
+	
+	table {
+		*background-color: white; *
+		border: none;
+	}
+	th, td {
+		border: none;
+		
+	}
+	
+	.stats {
+		color: black; 
+		font-weight: 700;
+		font-size: 25;
+	}
+	
+	.button {
+		background-color: black;
+		border: Black;
+		color: white;
+		padding: 15px 32px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		
+	}
+
+	.Tile {
+		background-color: grey;
+		color: white;
+		*padding-left: 15px;*
+		*padding-right: 15px;*
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 25px;
+		height:40px;
+		width:40px;
+	}
+	
+	.FlagTile {
+		background-color: grey;
+		color: white;
+		*padding-left: 15px;*
+		*padding-right: 15px;*
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 25px;
+		height:40px;
+		width:40px;
+	}
+	
+	.TileFlipped {
+		background-color: lightgrey;
+		*border: black;*
+		*padding: 9px 26px;*
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 25px;
+		height:40px;
+		width:40px;
+		
+	}
+	
+</style>
+
+<!-- this make it look more normal on a phone -->
+<meta name="viewport" content="width=device-width,
+                           maximum-scale=1.0" />
+</head>
+
+<body>
+
+<center>
+<h1>Lee's Minesweeper</h1>
+
+</br>
+</br>
+<span  id = "preGameWindow">
+	<table border="0"><tr><td>
+		<form>
+			</br>
+			<label>Select difficulty: </label></br></br>
+			<input type="radio" id="difficulty" name="difficulty" value="easy" checked>
+			<label for="easy">Easy </label>
+			<input type="radio" id="difficulty" name="difficulty" value="medium">
+			<label for="medium">Medium </label>
+			<input type="radio" id="difficulty" name="difficulty" value="hard">
+			<label for="hard">Hard</label>
+		</form>
+	</td></tr></table>
+	</br>
+	<button class = "button" type = "button" id = "playButton" onclick = "playGame()">Play Game</button>
+</span>
+
+<span id = "gameWindow">
+	<table class = "stats"  id="stats" border="0"> 
+		<tr>
+			<td style="text-align: left"><span id = "timer">00:00:00</span></td>
+			<td style="text-align: right"><span id= "matchCounter" > Bombs left: X </span> <button type = "button" class = "FlagTile" id = "FlagButton" onclick = "toggleFlag()"> &#128681 </button></td>
+		</tr>
+	</table>
+
+	</br>
+
+	<table id="gameBoard" border="1"> 
+	</table>
+	</br>
+	
+	<center>
+</span>
+
+<span  id = "postGameWindow">
+	<h2><span id= "postGameText" >Did you win?</span></h2>
+	<h2>Would you like to play again?</h2>
+	</br>
+	<button class = "button" type = "button" id = "playButton" onClick="window.location.reload();">Play Again</button>
+</span>
+
+<script>
+
+var tiles = [];
+var xTiles;
+var yTiles;
+var amountOfBombs = 1000;
+var bombsSelected = 0;
+var tilesFipped = 0;
+var placingFlags = false;
+
+var preGameWindow = document.getElementById("preGameWindow");
+var gameWindow = document.getElementById("gameWindow");
+var postGameWindow = document.getElementById("postGameWindow");
+gameWindow.style.display = "none";
+postGameWindow.style.display = "none";
+
+//timer stuff:
+var startTime;
+var updatedTime;
+//var difference;
+var stopWatchInterval;
+var stillPlaying = true;
+
+var running = 0;
+
+
+function playGame() {
+	//hide the menu
+	preGameWindow.style.display = "none";
+	
+	//show the game
+	gameWindow.style.display = "inline";
+	
+	var difficulties = document.getElementsByName('difficulty');
+	var difficultyValue = "";
+	for(var i = 0; i < difficulties.length; i++){
+		if(difficulties[i].checked){
+			difficultyValue = difficulties[i].value;
+		}
+	}
+	
+	if (difficultyValue == "easy") {
+		xTiles = 8;
+		yTiles = 8;
+		amountOfBombs = 10;
+	} else if (difficultyValue == "medium") {
+		xTiles = 18;
+		yTiles = 14;
+		amountOfBombs = 40;
+	} else if (difficultyValue == "hard") {
+		xTiles = 24;
+		yTiles = 20;
+		amountOfBombs = 99;
+	}
+	
+	makeDeck(xTiles, yTiles);
+	
+	
+	//correctly align stats table
+	document.getElementById("stats").style.width = ((40 + 4)*xTiles + 2) + "px"; //the plus 2 and 4 in there is to accomodate for the padding
+	
+		
+	//have a timer that counts as you play
+	//help: https://medium.com/@olinations/an-accurate-vanilla-js-stopwatch-script-56ceb5c6f45b
+	startTimer()
+	
+	//fill gameBoard
+	table = document.getElementById("gameBoard");
+		//fill the memory table	
+		for(var j = 0; j < yTiles; j++) {
+		   // create a new row
+		   var newRow = table.insertRow(table.length);
+		   for(var i = 0; i < xTiles; i++) {
+			   // create a new cell
+			   var cell = newRow.insertCell(i);
+			   
+			   // add value to the cell
+			   cell.innerHTML = '<center><button type = "button" class = "Tile" id = "'+i+","+j+'" onclick = "flip('+i+','+j+')">'+createTile(-1)+'</button></center>' ;
+		   }
+		}
+		
+	//update match counter
+	var matchCounter = document.getElementById("matchCounter");
+	matchCounter.innerHTML = "Bombs left: " + (amountOfBombs -bombsSelected);
+	
+	
+		
+}
+
+function startTimer() {
+	if (!running) {
+		startTime = new Date().getTime();
+		stopWatchInterval = setInterval(updateTime, 1); 
+	}
+}
+
+function updateTime() {
+
+	updatedTime = new Date().getTime();
+	
+	var difference =  updatedTime - startTime;
+	
+	var timerDisplay = document.getElementById("timer");
+	timerDisplay.innerHTML = "lee";
+	
+	//var hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+	var minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+	var seconds = Math.floor((difference % (1000 * 60)) / 1000);
+	//var milliseconds = Math.floor((difference % (1000 * 60)) / 100);
+
+	
+	//hours = (hours < 10) ? "0" + hours : hours;
+	minutes = (minutes < 10) ? "0" + minutes : minutes;
+	seconds = (seconds < 10) ? "0" + seconds : seconds;
+	//milliseconds = (milliseconds < 100) ? (milliseconds < 10) ? "00" + milliseconds : "0" + milliseconds : milliseconds;
+	
+	//update timer on screen
+	var timerDisplay = document.getElementById("timer");
+	timerDisplay.innerHTML = minutes + ':' + seconds;
+}
+
+function makeDeck(xAmount, yAmount) {
+
+	
+	
+	for (i=0; i<(xAmount*yAmount); i++){ //fills the deck in order
+		if (i < amountOfBombs) {
+			tiles[i] = 9;
+		} else {
+			tiles[i] = 0; 
+		}
+	}
+	
+	//shuffle the deck:
+	var tempIndex, tempTile;
+	for (i=0; i<xAmount*yAmount; i++){
+		tempIndex = Math.floor(Math.random()*(xAmount*yAmount));
+		tempTile = tiles[i];
+		tiles[i] = tiles[tempIndex];
+		tiles[tempIndex] = tempTile;
+	}
+	
+	for (i=0; i<(xAmount*yAmount); i++){ //fills the other numbers in the deck
+		if (tiles[i] == 9) {
+			//do nothing because its already a bomb
+		} else {
+			var checkLeft = false;
+			var checkRight = false;
+			var checkUp = false;
+			var checkDown = false;
+			
+			if ((i%xAmount) !== 0) {//not left column tile
+				checkLeft = true;
+			}
+			if ((i%xAmount) !== (xAmount -1) ) { //not right column tile
+				checkRight = true;			
+			}
+			if ((i - xAmount) >= 0) { // not the top row tile
+				checkUp = true;
+			}
+			if ((i + xAmount) < (xAmount*yAmount)) { // not the bottom row tile
+				checkDown = true;
+			}
+			
+			if (checkLeft) {
+			
+				if (tiles[i-1] == 9) {
+					tiles[i] = tiles[i] + 1;
+				}
+				
+				if (checkUp) {
+					if (tiles[i -xAmount -1] == 9) {
+						tiles[i] = tiles[i] + 1;
+					}
+				}
+				if (checkDown) {
+					if (tiles[i +xAmount-1] == 9) {
+						tiles[i] = tiles[i] + 1;
+					}
+				}
+			}
+			
+			if (checkRight) {
+			
+				if (tiles[i+1] == 9) {
+					tiles[i] = tiles[i] + 1;
+				}
+				
+				if (checkUp) {
+					if (tiles[i -xAmount +1] == 9) {
+						tiles[i] = tiles[i] + 1;
+					}			
+
+				}
+				if (checkDown) {
+					if (tiles[i +xAmount + 1] == 9) {
+						tiles[i] = tiles[i] + 1;
+					}
+				}
+			}
+				
+			if (checkUp) {
+				if (tiles[i -xAmount] == 9) {
+					tiles[i] = tiles[i] + 1;
+				}
+			}			
+			
+			if (checkDown) {
+				if (tiles[i +xAmount] == 9) {
+					tiles[i] = tiles[i] + 1;
+				}
+			}			
+				
+		}
+	}
+	
+	
+}
+
+function flip(i,j) {
+	if (stillPlaying){
+
+		var buttonClicked = document.getElementById(i+","+j);	
+		
+		if (buttonClicked.className == "Tile") {
+		
+			 if (placingFlags) {
+				//place a flag on the tile
+				buttonClicked.className = "FlagTile";
+				buttonClicked.innerHTML = createTile(-2);
+				bombsSelected++;
+				
+			 } else {
+				//flip Tile
+				buttonClicked.className = "TileFlipped";
+				buttonClicked.innerHTML = createTile(tiles[j*xTiles+i]);
+				
+				//check to see if its a bomb
+				if (tiles[j*xTiles+i] == 9) {
+					//its a bomb!
+					clearInterval(stopWatchInterval);
+					
+					//flip all the bombs and mark correct flags
+					for (k=0; k< xTiles; k++) {
+						for (l=0; l< yTiles; l++) {
+							
+							var buttonBeingChecked = document.getElementById(k+","+l)
+							if ((buttonBeingChecked.className == "FlagTile") && (tiles[l*xTiles+k] == 9)) {
+								//correctly identified bomb. Good job
+								buttonBeingChecked.style.backgroundColor = "green";
+							} else if ((buttonBeingChecked.className == "FlagTile") && (tiles[l*xTiles+k] != 9)) {
+								//incorrectly identified bomb. Bad job
+								buttonBeingChecked.style.backgroundColor = "orange";
+							} else if (tiles[l*xTiles+k] == 9) {
+								//leftover bomb
+								buttonBeingChecked.style.backgroundColor = "red";
+								buttonBeingChecked.innerHTML = createTile(9);
+
+							}
+
+								
+						}
+					}
+					
+					postGameText.innerHTML = "You lose! God you suck";
+					//show the post game screen
+					postGameWindow.style.display = "inline";
+					stillPlaying = false;
+
+					
+				} else {
+				
+					if (tiles[j*xTiles+i] == 0){
+						//flip tiles around it
+						
+						var checkLeft = false;
+						var checkRight = false;
+						var checkUp = false;
+						var checkDown = false;
+						
+						if (i > 0) {//not left column tile
+							checkLeft = true;
+						}
+						if (i < (xTiles -1)) { //not right column tile
+							checkRight = true;			
+						}
+						if (j > 0) { // not the top row tile
+							checkUp = true;
+						}
+						if (j < (yTiles-1)) { // not the bottom row tile
+							checkDown = true;
+						}
+						
+						if (checkLeft) {
+
+							flip(i-1,j);
+							
+							if (checkUp) {
+								flip(i-1,j-1);
+							}
+							if (checkDown) {
+								flip(i-1,j+1);
+							}
+						}
+						
+						if (checkRight) {
+						
+							flip(i+1,j);
+							
+							if (checkUp) {
+								flip(i+1,j-1);
+							}
+							if (checkDown) {
+								flip(i+1,j+1);
+							}
+						}
+							
+						if (checkUp) {
+							flip(i,j-1);	
+						}			
+						
+						if (checkDown) {
+							flip(i,j+1);
+						}
+					}
+					
+					tilesFipped++;
+					//check and see if you have won:
+					if (tilesFipped == (xTiles*yTiles - amountOfBombs)) {
+						//You've won
+						clearInterval(stopWatchInterval);
+						
+						for (k=0; k< xTiles; k++) {
+							for (l=0; l< yTiles; l++) {
+								
+								var buttonBeingChecked = document.getElementById(k+","+l)
+								if ((buttonBeingChecked.className == "FlagTile") && (tiles[l*xTiles+k] == 9)) {
+									//correctly identified bomb. Good job
+									buttonBeingChecked.style.backgroundColor = "green";
+								} 
+							}
+						}
+						postGameText.innerHTML = "You've won! Great job";
+						//show the post game screen
+						postGameWindow.style.display = "inline";
+						stillPlaying = false;
+					}
+				}
+			 }
+			
+		} else if (placingFlags && buttonClicked.className == "FlagTile") {
+					// revert tile back to normal
+					buttonClicked.className = "Tile";
+					buttonClicked.innerHTML = createTile(-1);
+					bombsSelected--;
+			
+		}
+		
+		//update match counter
+		matchCounter.innerHTML = "Bombs left: " + (amountOfBombs -bombsSelected);
+	}		
+}
+
+function createTile(orderedTileNumber) { //this function returns the html to display the Tile
+	
+	var Tile = '<span ';
+	var otherAttributes = 'text-align = "center">';
+	var closeSpan = '</span>';
+
+	
+	if (orderedTileNumber == -1) {
+		//Tile is facedown
+		Tile += otherAttributes;
+		Tile += '?';
+		Tile += closeSpan;
+
+		return Tile;
+
+	}else if (orderedTileNumber == -2) {
+		//Tile is facedown
+		Tile += otherAttributes;
+		Tile += '&#128681';
+		Tile += closeSpan;
+
+		return Tile;
+
+	} else {
+		//Tile is faceup
+		
+		orderedTileNumber
+		
+		var number = "";
+		switch(orderedTileNumber) {
+			case 0:
+				number = "";
+				break;
+			case 9:
+				number = "&#x1f4a3";
+				break;
+			default:
+				number = orderedTileNumber;
+		}
+		
+		/*suits as emojis:
+			spades: &#x2660
+			clubs: &#x2663
+			hearts: &#x2665
+			diamonds: &#x2666
+		*/
+		
+		Tile += otherAttributes;
+		Tile += number;
+		Tile += closeSpan;
+		return Tile;
+	
+	}
+}
+
+function toggleFlag() {
+	var flagButton = document.getElementById("FlagButton");	
+
+	if (placingFlags) {
+		placingFlags = false;
+		flagButton.className = "FlagTile";
+	} else {
+		placingFlags = true;
+		flagButton.className = "TileFlipped";
+	}
+
+}
+
+// https://www.websitebuilderexpert.com/hosting-websites/
+
+</script>
+</body>
+</html>
+
+

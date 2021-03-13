@@ -1,0 +1,420 @@
+<html>
+<head>
+
+<style>
+	body {
+		background-color:lightblue; 
+		font-family:'Helvetica';
+	}
+	
+	h1 {
+		color: darkblue; 
+		font-weight: 900;
+		font-size: 50;
+	}
+	
+	h2 {
+		color: darkblue; 
+		font-weight: 700;
+		font-size: 25;
+	}
+	
+	p {
+		color: red;
+	}
+	
+	table {
+		*background-color: white; *
+		border: none;
+	}
+	th, td {
+		border: none;
+		
+	}
+	
+	.stats {
+		color: darkblue; 
+		font-weight: 700;
+		font-size: 25;
+	}
+	
+	.button {
+		background-color: darkblue;
+		border: Black;
+		color: white;
+		padding: 15px 32px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		
+	}
+
+	.card {
+		background-color: darkblue;
+		color: white;
+		*padding-left: 15px;*
+		*padding-right: 15px;*
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 25px;
+		height:50px;
+		width:70px;
+	}
+	
+	.cardFlipped {
+		background-color: white;
+		*border: darkblue;*
+		*padding: 9px 26px;*
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 25px;
+		height:50px;
+		width:70px;
+		
+	}
+	
+</style>
+
+<!-- this make it look more normal on a phone -->
+<meta name="viewport" content="width=device-width,
+                           maximum-scale=1.0" />
+</head>
+
+<body>
+
+<center>
+<h1>Lee's Memory Match</h1>
+
+</br>
+</br>
+<span  id = "preGameWindow">
+	<table border="0"><tr><td>
+		<form align="right">
+			</br>
+			<label> Amount of rows: </label>
+			<input type="text" id= "rows" value="3"> </br></br>
+			<label> Amount of columns: </label>
+			<input type="text" id= "columns" value="4"> </br>
+		</form>
+	</td></tr></table>
+	</br>
+	<button class = "button" type = "button" id = "playButton" onclick = "playGame()">Play Game</button>
+</span>
+
+<span id = "gameWindow">
+	<table class = "stats"  id="stats" border="0"> 
+		<tr>
+			<td style="text-align: left"><span id = "timer">00:00:00</span></td>
+			<td style="text-align: right"><span id= "matchCounter" > Matches left: X </span></td>
+		</tr>
+	</table>
+
+	</br>
+
+	<table id="gameBoard" border="1"> 
+	</table>
+	</br>
+	
+	<center>
+</span>
+
+<span  id = "postGameWindow">
+	<h2>Good job! You've won</h2>
+	<h2>Would you like to play again?</h2>
+	</br>
+	<button class = "button" type = "button" id = "playButton" onClick="window.location.reload();">Play Again</button>
+</span>
+
+<script>
+
+var cards = [];
+var xCards;
+var yCards;
+var cardFlipped = [-1,-1];
+var amountOfMatches = 1000;
+var matchesMade = 0;
+
+var preGameWindow = document.getElementById("preGameWindow");
+var gameWindow = document.getElementById("gameWindow");
+var postGameWindow = document.getElementById("postGameWindow");
+gameWindow.style.display = "none";
+postGameWindow.style.display = "none";
+
+//timer stuff:
+var startTime;
+var updatedTime;
+//var difference;
+var stopWatchInterval;
+//var savedTime;
+//var paused = 0;
+var running = 0;
+
+
+function playGame() {
+	//hide the menu
+	preGameWindow.style.display = "none";
+	
+	//show the game
+	gameWindow.style.display = "inline";
+	
+	var rows = +document.getElementById("rows").value;
+	var columns = +document.getElementById("columns").value;
+	
+	if ((rows*columns)%2 == 1 ) {
+		//odd number of pieces, make it even
+		columns = columns + 1;
+	}
+	if (rows == 0 && columns == 0) {
+		//didn't fill anything
+		columns = 5;
+		rows = 6;
+	}
+	xCards = rows;
+	yCards = columns;
+	makeDeck(xCards * yCards);
+	amountOfMatches = (xCards * yCards)/2;
+	
+	
+	//correctly align stats table
+	document.getElementById("stats").style.width = ((70 + 4)*columns + 2) + "px"; //the plus 2 and 4 in there is to accomodate for the padding
+	
+		
+	//have a timer that counts as you play
+	//help: https://medium.com/@olinations/an-accurate-vanilla-js-stopwatch-script-56ceb5c6f45b
+	startTimer()
+	
+	//fill gameBoard
+	table = document.getElementById("gameBoard");
+		//fill the memory table	
+		for(var i = 0; i < xCards; i++) {
+		   // create a new row
+		   var newRow = table.insertRow(table.length);
+		   for(var j = 0; j < yCards; j++) {
+			   // create a new cell
+			   var cell = newRow.insertCell(j);
+			   
+			   // add value to the cell
+			   cell.innerHTML = '<center><button type = "button" class = "card" id = "'+i+j+'" onclick = "flip('+i+','+j+')">'+createCard(-1)+'</button></center>' ;
+		   }
+		}
+		
+	//update match counter
+	var matchCounter = document.getElementById("matchCounter");
+	matchCounter.innerHTML = "Matches left: " + (amountOfMatches -matchesMade);
+	
+	
+		
+}
+
+function startTimer() {
+	if (!running) {
+		startTime = new Date().getTime();
+		stopWatchInterval = setInterval(updateTime, 1); 
+	}
+}
+
+function updateTime() {
+
+	updatedTime = new Date().getTime();
+	
+	var difference =  updatedTime - startTime;
+	
+	var timerDisplay = document.getElementById("timer");
+	timerDisplay.innerHTML = "lee";
+	
+	//var hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+	var minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+	var seconds = Math.floor((difference % (1000 * 60)) / 1000);
+	//var milliseconds = Math.floor((difference % (1000 * 60)) / 100);
+
+	
+	//hours = (hours < 10) ? "0" + hours : hours;
+	minutes = (minutes < 10) ? "0" + minutes : minutes;
+	seconds = (seconds < 10) ? "0" + seconds : seconds;
+	//milliseconds = (milliseconds < 100) ? (milliseconds < 10) ? "00" + milliseconds : "0" + milliseconds : milliseconds;
+	
+	//update timer on screen
+	var timerDisplay = document.getElementById("timer");
+	timerDisplay.innerHTML = minutes + ':' + seconds;
+}
+
+function makeDeck(amountOfCards) {
+	
+	for (i=0; i<amountOfCards/2; i++){ //fills the deck in order
+		cards[i] = i%52 +1; //cards are the following:  (1,...,52)
+		cards[i + amountOfCards/2] = i%52 +1;
+	}
+	
+	//shuffle the deck:
+	var tempIndex, tempCard;
+	for (i=0; i<amountOfCards; i++){
+		tempIndex = Math.floor(Math.random()*(amountOfCards));
+		tempCard = cards[i];
+		cards[i] = cards[tempIndex];
+		cards[tempIndex] = tempCard;
+	}
+	
+	
+}
+
+function flip(i,j) {
+	
+	var buttonClicked = document.getElementById(""+i+j);	
+	
+	if (buttonClicked.className == "card") {
+		//flip card
+		buttonClicked.className = "cardFlipped";
+		buttonClicked.innerHTML = createCard(cards[j*xCards+i]);
+		
+		//has a card already been flipped?
+		if (cardFlipped[0] == -1 && cardFlipped[1] == -1 ) {
+			//This means no card has been flipped yet so set this new flipped card as cardFlipped
+			cardFlipped[0] = i;
+			cardFlipped[1] = j;
+		} else {
+			//This is the second card to be flipped
+			
+			//check to see if its a match
+			if (cards[j*xCards+i] == cards[cardFlipped[1]*xCards+cardFlipped[0]]) {
+				//its a match!
+				matchesMade += 1;
+				
+				var matchCounter = document.getElementById("matchCounter");
+				matchCounter.innerHTML = "Matches left: " + (amountOfMatches -matchesMade);
+				
+				//Don't flip the cards back
+				cardFlipped[0] = -1;
+				cardFlipped[1] = -1;
+				
+				//see if there are any matches left:
+				if (amountOfMatches == matchesMade) {
+					//game complete
+					matchCounter.innerHTML = "You've won";
+					clearInterval(stopWatchInterval);
+					
+					//show the game
+					postGameWindow.style.display = "inline";
+
+				}
+				
+				
+			} else {
+				//its not a match. Flip them back over
+				document.getElementById("stats").style.color = "red";
+
+				
+				//only flip the card back after a second delay
+				setTimeout(function(){
+					document.getElementById("stats").style.color = "";
+
+				
+					//flip the cards back:
+					buttonClicked.className = "card";
+					buttonClicked.innerHTML = createCard(-1);
+					
+					var otherClickedCard = document.getElementById(""+cardFlipped[0]+cardFlipped[1]);	
+					otherClickedCard.className = "card";
+					otherClickedCard.innerHTML = createCard(-1);
+					
+					//mark cardFlipped back to -1,-1
+					cardFlipped[0] = -1;
+					cardFlipped[1] = -1;
+					
+				}, 750); //1000 miliseconds = 1 second
+				
+			}
+			
+		}
+	} else {
+		//card has already been flipped. Do nothing? Or flip the card back?
+		if (cardFlipped[0] == i && cardFlipped[1] == j ) { // this means it was the last card to be flipped
+		
+			buttonClicked.className = "card";
+			buttonClicked.innerHTML = createCard(-1);
+			cardFlipped[0] = -1;
+			cardFlipped[1] = -1;
+		}
+	}
+	
+}
+
+function createCard(orderedCardNumber) { //this function returns the html to display the card
+	
+	var card = '<span ';
+	var otherAttributes = 'text-align = "center">';
+	var closeSpan = '</span>';
+
+	
+	if (orderedCardNumber == -1) {
+		//card is facedown
+		card += otherAttributes;
+		card += '?';
+		card += closeSpan;
+
+		return card;
+
+	} else {
+		//card is faceup
+		
+		//number = (0,...,12)
+		//suit = (0,..,3)
+		var suitNumber = orderedCardNumber % 4;
+		var cardFaceNumber = orderedCardNumber % 13;
+		
+		var suit = "";
+		switch(suitNumber) {
+			case 0:
+				suit = "&#x2660";
+				break;
+			case 1:
+				suit = "&#x2663";
+				break;
+			case 2:
+				otherAttributes = ' style="color: red";>' ;
+				suit = "&#x2665";
+				break;
+			case 3:
+				otherAttributes = ' style="color: red";>';
+				suit = "&#x2666";
+				break;
+			default:
+				suit = "&#127183";
+		}
+		var cardFace = "";	
+		switch(cardFaceNumber) {
+			case 0:
+				cardFace = "K";
+				break;
+			case 12:
+				cardFace = "Q";
+				break;
+			case 11:
+				cardFace = "J";
+				break;
+			default:
+				cardFace = cardFaceNumber;
+		}
+		/*suits as emojis:
+			spades: &#x2660
+			clubs: &#x2663
+			hearts: &#x2665
+			diamonds: &#x2666
+		*/
+		
+		card += otherAttributes;
+		card += cardFace + suit;
+		card += closeSpan;
+		return card;
+	
+	}
+}
+
+// https://www.websitebuilderexpert.com/hosting-websites/
+
+</script>
+</body>
+</html>
+
+
