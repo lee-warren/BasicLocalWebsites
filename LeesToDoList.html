@@ -66,7 +66,7 @@
 		font-size: 20;
 	}
 	
-	button {
+	a.button, button {
 		background-color: var(--darkest);
 		color: white;
 		padding: 10px 20px;
@@ -76,7 +76,11 @@
 		font-size: 20;
 		border-radius: 15px;
 		margin-left: 10px;
-		
+	}
+
+	.github-image {
+		height: 25px;
+		width: 25px;
 	}
 	
 	input {
@@ -96,7 +100,7 @@
 		border:none;
 	}
 	
-	.enterItemWindow, .completedItemWindow, .toDoItemWindow, .categoriesWindow, .musicWindow{
+	.enterItemWindow, .completedItemWindow, .extraFieldsWindow, .toDoItemWindow, .categoriesWindow, .musicWindow{
 		background-color: rgba(255, 255, 255, .15);  
 		backdrop-filter: blur(5px);
 		box-shadow: 1px 5px 4px var(--darkest);
@@ -104,9 +108,7 @@
 		padding: 15px 30px 15px 30px;
 		margin-bottom: 15px;
 		border-radius: 30px;
-
 	}
-	
 	
 	.flex-container {
 	  display: flex;
@@ -133,7 +135,7 @@
 <body onload="loadList()">
 
 <center>
-<h1>Lee's To-Do List</h1>
+<h1>Lee's To-Do List</h1> 
 
 </br>
 
@@ -158,6 +160,9 @@
 			<input type="text" id= "newCategoryItem" size="60" value="" onkeyup="keyUpOnNewCategory(event)">
 			<button class = "button" type="button" id = "addButton" onclick = "addItemCategory()">Add</button>
 			<table id="categoriesTable"> </table>
+		</div>
+		<div id="extraFieldsWindow" class="extraFieldsWindow">
+			<h2 id="extraFields"></h2> 
 		</div>
 		<div id="toDoItemWindow" class="toDoItemWindow">
 			<h2>Things to do:</h2> 
@@ -227,11 +232,27 @@ function loadList() {
 	var retrievedData3 = localStorage.getItem("categories");
 	categories = JSON.parse(retrievedData3);
 
+	makeCategoriesExtraFields();
 	makeToDoListTable();
 	makeCompletedListTable();
 	makeCategoriesTable();
 	makeCategoriesDropdown();
 	
+}
+
+function makeCategoriesExtraFields() {
+	extraFieldsWindow.style.display = "none";
+	extraFields = document.getElementById("extraFields");
+	extraFields.innerHTML = "";
+
+	if (filterCategory.value == 3) { //Programming - Game Stuff
+		extraFieldsWindow.style.display = "block";
+		extraFields.innerHTML = "<a class='button' href='https://github.com/lee-warren' target='_blank'><img class='github-image' src='Images/GitHub-Logo.png'/></a>";
+	}
+	if (filterCategory.value == 4) { //Programming - Web Stuff
+		extraFieldsWindow.style.display = "block";
+		extraFields.innerHTML = "<a class='button' href='https://github.com/lee-warren' target='_blank'><img class='github-image' src='Images/GitHub-Logo.png'/></a>";
+	}
 }
 
 function makeToDoListTable() {
@@ -367,6 +388,7 @@ function makeFilterCategoriesDropdown() {
 }
 
 function filterToDo() {
+	makeCategoriesExtraFields();
 	makeToDoListTable();
 	makeCompletedListTable();
 }
